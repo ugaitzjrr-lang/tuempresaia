@@ -1,0 +1,37 @@
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from app.core.embeddings import query_top_k
+from app.core.llm import call_llm, build_prompt
+from app.db.session_store import save_session
+
+
+router = APIRouter()
+
+
+class ChatReq(BaseModel):
+tenant_id: str
+user_id: str
+message: str
+context: dict = {}
+top_k: int = 5
+
+
+@router.post('/chat')
+async def chat(req: ChatReq):
+try:
+# 1) Retrieval
+docs = query_top_k(req.tenant_id, req.message, k=req.top_k)
+# 2) Build prompt
+prompt = build_prompt(req.message, req.context, docs)
+# 3) Call LLM
+llm_resp = await call_llm(prompt)
+# 4) Basic parsing (expecting JSON or text)
+structured = {
+"answer_raw": llm_resp,
+"docs": docs
+}
+# 5) Save session
+save_session(req.tenant_id, req.user_id, req.message, structured)
+return {"result": structured}
+except Exception as e:
+raise HTTPException(status_code=500, detail=str(e))
