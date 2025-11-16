@@ -1,0 +1,21 @@
+tuempresaai-starter/
+├─ backend/
+│ ├─ app/
+│ │ ├─ main.py
+│ │ ├─ api/
+│ │ │ ├─ chat.py
+│ │ │ └─ upload.py
+│ │ ├─ core/
+│ │ │ └─ embeddings.py
+│ │ ├─ db/
+│ │ └─ utils/
+│ ├─ requirements.txt
+│ └─ Dockerfile
+├─ frontend/
+│ ├─ app/ (Next.js)
+│ └─ package.json
+├─ infra/
+│ └─ docker-compose.yml
+└─ README.md
+from fastapi import FastAPI
+from app.api import chat, upload
