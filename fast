@@ -1,0 +1,18 @@
+rom fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from app.core.embeddings import ingest_document_for_tenant
+from uuid import uuid4
+
+
+router = APIRouter()
+
+
+@router.post('/upload')
+async def upload_file(tenant_id: str = Form(...), file: UploadFile = File(...)):
+# Nombre temporal del archivo
+task_id = str(uuid4())
+try:
+# ingest_document_for_tenant guarda el archivo en storage, extrae texto, chunkea y sube vectores
+await ingest_document_for_tenant(tenant_id, file, task_id=task_id)
+return {"status": "enqueued", "task_id": task_id}
+except Exception as e:
+raise HTTPException(status_code=500, detail=str(e))
